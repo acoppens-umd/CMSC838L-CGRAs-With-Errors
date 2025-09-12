@@ -18,7 +18,8 @@ Welcome to **Morpher**, an open-source framework that provides comprehensive sup
 
 **Morpher Framework:**
 ![Morpher Framework](https://github.com/ecolab-nus/morpher-v2/assets/12274945/80329bad-dc35-42b2-93a4-843d7c1f4550)
-
+More information:
+    [ICCAD 2025 paper](https://arxiv.org/abs/2508.19090)
 
 **Video Demonstration**: Dive into the capabilities of Morpher as it highlights the CGRA compilation, architecture generation, and simulation flow.
 
@@ -107,28 +108,45 @@ python -u run_morpher_llvm16.py morpher_benchmarks/array_add/array_add.c array_a
 
 
 # Publications
+**If you use Morpher in your work, please cite this paper.**
+
+[ICCAD] [Building an Open CGRA Ecosystem for Agile Innovation](https://arxiv.org/abs/2508.19090)\
+Rohan Juneja, Pranav Dangi, Thilini Kaushalya Bandara, Zhaoying Li, Dhananjaya Wijerathne, Li-Shiuan Peh, Tulika Mitra\
+(to appear in ICCAD 2025)
+        
+        @misc{juneja2025buildingopencgraecosystem,
+        title={Building an Open CGRA Ecosystem for Agile Innovation}, 
+        author={Rohan Juneja and Pranav Dangi and Thilini Kaushalya Bandara and Zhaoying Li and Dhananjaya Wijerathne and Li-Shiuan Peh and Tulika Mitra},
+        year={2025},
+        eprint={2508.19090},
+        archivePrefix={arXiv},
+        primaryClass={cs.AR},
+        url={https://arxiv.org/abs/2508.19090}, }
+
+
+**Or when working with HyCUBE (now PACE), please reference this paper.**
+
+[HotChips] [PACE: A Scalable and Energy Efficient CGRA in a RISC-V SoC for Edge Computing Applications](https://ieeexplore.ieee.org/abstract/document/10665106)\
+Vishnu P. Nambiar, Yi Sheng Chong, Thilini Kaushalya Bandara, Dhananjaya Wijerathne, Zhaoying Li, Rohan Juneja, Li-Shiuan Peh, Tulika Mitra, Anh Tuan Do\
+IEEE Hot Chips Symposium (HCS) 2024
+
+        @INPROCEEDINGS{10665106,
+        author={Nambiar, Vishnu P. and Chong, Yi Sheng and Bandara, Thilini Kaushalya and Wijerathne, Dhananjaya and Li, Zhaoying and Juneja, Rohan and Peh, Li-Shiuan and Mitra, Tulika and Do, Anh Tuan},
+        booktitle={2024 IEEE Hot Chips 36 Symposium (HCS)}, 
+        title={PACE: A Scalable and Energy Efficient CGRA in a RISC-V SoC for Edge Computing Applications}, 
+        year={2024},
+        volume={},
+        number={},
+        pages={1-1},
+        keywords={Program processors;Energy efficiency;Vectors;Hardware;Flow graphs;Arrays;Kernel},
+        doi={10.1109/HCS61935.2024.10665106}}
 
 [CODAI] [Accelerating Edge AI with Morpher: An Integrated Design, Compilation and Simulation Framework for CGRAs](https://arxiv.org/abs/2309.06127)\
-(to appear in Workshop on Compilers, Deployment, and Tooling for Edge AI with Embedded Systems Week (ESWEEK))
-
-        @article{morpher-codai2023,
-            title   = "{Accelerating Edge AI with Morpher: An Integrated Design, Compilation and Simulation Framework for CGRAs}",
-            author  = {Dhananjaya Wijerathne, Zhaoying Li, Tulika Mitra},
-            journal = {Workshop on Compilers, Deployment, and Tooling for Edge AI (CODAI)},
-            month   = {September},
-            year    = {2023},
-        } 
+ESWEEK 2023
 
 [WOSET] [Morpher: An Open-Source Integrated Compilation and Simulation Framework for CGRA](https://www.comp.nus.edu.sg/~tulika/WOSET_MORPHER_2022.pdf)\
-(Appeared in Workshop on Open-Source EDA Technology co-sponsored by ICCAD 2022)
-
-        @article{morpher-woset2022,
-            title   = "{Morpher: An Open-Source Integrated Compilation and Simulation Framework for CGRA}",
-            author  = {Dhananjaya Wijerathne, Zhaoying Li, Manupa Karunaratne, Li-Shiuan Peh, Tulika Mitra},
-            journal = {Fifth Workshop on Open-Source EDA Technology (WOSET)},
-            month   = {November},
-            year    = {2022},
-        } 
+Dhananjaya Wijerathne, Zhaoying Li, Manupa Karunaratne, Li-Shiuan Peh, Tulika Mitra\
+Workshop on Open-Source EDA Technology, International Conference on Computer-Aided Design 2022
         
 [DAC] [PANORAMA: Divide-and-Conquer Approach for Mapping Complex Loop Kernels on CGRA](https://www.comp.nus.edu.sg/~tulika/DAC22.pdf)\
 Dhananjaya Wijerathne, Zhaoying Li, Thilini Kaushalya Bandara, Tulika Mitra\
