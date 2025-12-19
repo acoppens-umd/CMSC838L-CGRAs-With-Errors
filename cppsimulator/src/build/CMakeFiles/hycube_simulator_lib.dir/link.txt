@@ -1,0 +1,2 @@
+/usr/bin/ar qc libhycube_simulator_lib.a CMakeFiles/hycube_simulator_lib.dir/CGRA.o CMakeFiles/hycube_simulator_lib.dir/CGRATile.o CMakeFiles/hycube_simulator_lib.dir/hycube_sim.o
+/usr/bin/ranlib libhycube_simulator_lib.a

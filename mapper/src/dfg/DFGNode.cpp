@@ -1,0 +1,346 @@
+/*
+ * dfgnode.cpp
+ *
+ *  Created on: 20 Feb 2018
+ *      Author: manupa
+ */
+
+#include <morpher/dfg/DFGNode.h>
+#include <morpher/arch/Port.h>
+#include <algorithm>
+#include <assert.h>
+#include <iostream>
+#include <morpher/arch/DataPath.h>
+#include <morpher/arch/CGRA.h>
+#include <morpher/dfg/DFG.h>
+#include <bitset>
+
+namespace CGRAXMLCompile
+{
+
+DFGNode::DFGNode()
+{
+	// TODO Auto-generated constructor stub
+}
+
+} /* namespace CGRAXMLCompile */
+
+std::string CGRAXMLCompile::DFGNode::get27bitConstantBinaryString() {
+
+       assert(hasConst);
+       std::string s = std::bitset<27>(constant).to_string();
+       return s;
+}
+
+std::string CGRAXMLCompile::DFGNode::get32bitConstantBinaryString() {
+
+       assert(hasConst);
+       std::string s = std::bitset<32>(constant).to_string();
+       return s;
+}
+
+std::string CGRAXMLCompile::DFGNode::getBinaryString() {
+
+       if(op == "NOP"){
+               return "00000000";
+       }
+       else if(op == "ADD"){
+               return "00000001";
+       }
+	   //ALEX
+	   else if(op == "ADD_WO") {
+			   return "00100010";
+	   }
+       else if(op == "SUB"){
+               return "00000010";
+       }
+       else if(op == "MUL"){
+               return "00000011";
+       }
+	   else if(op == "MUL_WO") {
+			   return "00100011";
+	   }
+       else if(op == "SEXT"){
+               return "00000100";
+       }
+       else if(op == "DIV"){
+               return "00000101";
+       }
+       else if(op == "INVDIV"){
+               return "00000111";
+       }
+       else if(op == "LS"){
+               return "00001000";
+       }
+       else if(op == "RS"){
+               return "00001001";
+       }
+       else if(op == "ARS"){
+               return "00001010";
+       }
+       else if(op == "AND"){
+               return "00001011";
+       }
+       else if(op == "OR"){
+               return "00001100";
+       }
+       else if(op == "XOR"){
+               return "00001101";
+       }
+       else if(op == "SELECT"){
+               return "00010000";
+       }
+       else if(op == "CMERGE"){
+               return "00010001";
+       }
+       else if(op == "CMP"){
+               return "00010010";
+       }
+       else if(op == "CLT"){
+               return "00010011";
+       }
+       else if(op == "BR"){
+               return "00010100";
+       }
+       else if(op == "BR"){
+               return "00010100";
+       }
+       else if(op == "CGT"){
+               return "00010101";
+       }
+       else if(op == "LOADCL"){
+               return "00010110";
+       }
+       else if(op == "MOVCL"){
+               return "00010111";
+       }
+       else if(op == "LOAD" || op == "OLOAD"){
+               return "00011000";
+       }
+       else if(op == "LOADH" || op == "OLOADH"){
+               return "00011001";
+       }
+       else if(op == "LOADB" || op == "OLOADB"){
+               return "00011010";
+       }
+	   else if(op == "LOADD" || op == "OLOADD"){
+               return "00100000";
+       }
+       else if(op == "STORE" || op == "OSTORE"){
+               return "00011011";
+       }
+       else if(op == "STOREH" || op == "OSTOREH"){
+               return "00011100";
+       }
+       else if(op == "STOREB" || op == "OSTOREB"){
+               return "00011101";
+       }
+	   else if(op == "STORED" || op == "OSTORED"){
+               return "00100001";
+       }
+       else if(op == "ENDL"){
+               return "00011110";
+       }
+       else if(op == "MOVC"){
+               return "00011111";
+       }
+       else{
+               std::cout << "Op not compatible : " << op << "\n";
+               assert(false);
+       }
+
+}
+
+
+void CGRAXMLCompile::DFGNode::clear(DFG *dfg)
+{
+	if (rootDP != NULL)
+	{
+		rootDP->getOutputDP()->getOutPort("T")->clear();
+
+		rootDP->clear();
+
+		CGRA *cgra = rootDP->getCGRA();
+		FU *fu = rootDP->getFU();
+		if (fu->supportedOPs.find("LOAD") != fu->supportedOPs.end())
+		{
+			cgra->freeMemNodes++;
+			cgra->freeMemNodeSet.insert(rootDP);
+		}
+
+		if (this->isMemOp())
+		{
+			dfg->unmappedMemOps++;
+			dfg->unmappedMemOpSet.insert(this);
+		}
+		assert(rootDP->getMappedNode()== NULL);
+		// LOG(SA)<<"clear root dp"<<this->idx<<" "<<rootDP->getFullName();
+
+		rootDP = NULL;
+	}
+
+	for (std::pair<Port *, int> pair : routingPorts)
+	{
+		Port *p = pair.first;
+		p->clear();
+	}
+
+	this->routingPorts.clear();
+
+	for (DFGNode *parent : parents)
+	{
+		std::set<std::pair<Port *, int>> delPorts;
+		for (std::pair<Port *, int> pair : parent->routingPorts)
+		{
+			Port *p = pair.first;
+			int destIdx = pair.second;
+			//			assert(parent->routingPortDestMap.find(p)!=parent->routingPortDestMap.end());
+			//			int dest_idx = routingPortDestMap[p];
+			//			assert(dest!=NULL);
+
+			if (parent->rootDP->getOutputDP()->getOutPort("T") == p)
+				continue;
+
+			if (destIdx == this->idx)
+			{
+				p->clear();
+				delPorts.insert(pair);
+			}
+		}
+		// std::cout << "delPorts.size = " << delPorts.size() << "\n";
+		// std::cout << "parentRoutingPort size(before) = " << parent->routingPorts.size() << "\n";
+		for (std::pair<Port *, int> pair : delPorts)
+		{
+			parent->routingPorts.erase(std::find(parent->routingPorts.begin(), parent->routingPorts.end(), pair));
+		}
+		// std::cout << "parentRoutingPort size(after) = " << parent->routingPorts.size() << "\n";
+	}
+}
+
+/* this function is originally designed for SA. Now also used for backtrack in PathFinder
+ As both functions need to clear utilization info of only one node in ports. 
+ The previous clear function will clear all the info (Port allows over-used, this will clear
+ other nodes' mapping info). 
+*/
+void CGRAXMLCompile::DFGNode::CarefulClear(DFG *dfg)
+{
+	std::string output_port_fullname ;
+	if (rootDP != NULL )
+	{
+		output_port_fullname = rootDP->getOutputDP()->getOutPort("T")->getFullName();
+		rootDP->getOutputDP()->getOutPort("T")->clear();
+
+		rootDP->clear();
+
+		CGRA *cgra = rootDP->getCGRA();
+		FU *fu = rootDP->getFU();
+		if (fu->supportedOPs.find("LOAD") != fu->supportedOPs.end())
+		{
+			cgra->freeMemNodes++;
+			cgra->freeMemNodeSet.insert(rootDP);
+		}
+
+		if (this->isMemOp())
+		{
+			dfg->unmappedMemOps++;
+			dfg->unmappedMemOpSet.insert(this);
+		}
+		assert(rootDP->getMappedNode() == NULL);
+		// LOG(SA)<<"clear root dp"<<this->idx<<" "<<rootDP->getFullName();
+
+		rootDP = NULL;
+	}
+
+	std::set<std::string> erased_ports;
+
+	for (std::pair<Port *, int> pair : routingPorts)
+	{
+		Port *p = pair.first;
+		erased_ports.insert(p->getFullName()+std::to_string(pair.second));
+
+		if(p->getFullName() ==output_port_fullname){
+				//has been cleared
+				continue;
+		}
+		// LOG(SA)<<"erase 1"<<p->getFullName();
+		p->erase(this, pair.second);
+		
+                
+	}
+
+	this->routingPorts.clear();
+
+	for (DFGNode *parent : parents)
+	{
+		std::set<std::pair<Port *, int>> delPorts;
+		for (std::pair<Port *, int> pair : parent->routingPorts)
+		{
+			Port *p = pair.first;
+			int destIdx = pair.second;
+			//			assert(parent->routingPortDestMap.find(p)!=parent->routingPortDestMap.end());
+			//			int dest_idx = routingPortDestMap[p];
+			//			assert(dest!=NULL);
+
+			if (parent->rootDP->getOutputDP()->getOutPort("T") == p)
+				continue;
+
+			if (destIdx == this->idx)
+			{
+				if(erased_ports.find(p->getFullName()) == erased_ports.end()){
+						// LOG(SA)<<"erase 1"<<p->getFullName();
+
+						p->erase(parent, destIdx);
+						erased_ports.insert(p->getFullName()+std::to_string(destIdx));
+				}
+				
+				delPorts.insert(pair);
+			}
+		}
+		// std::cout << "delPorts.size = " << delPorts.size() << "\n";
+		// std::cout << "parentRoutingPort size(before) = " << parent->routingPorts.size() << "\n";
+		for (std::pair<Port *, int> pair : delPorts)
+		{
+			parent->routingPorts.erase(std::find(parent->routingPorts.begin(), parent->routingPorts.end(), pair));
+		}
+		// std::cout << "parentRoutingPort size(after) = " << parent->routingPorts.size() << "\n";
+	}
+}
+
+std::string CGRAXMLCompile::DFGNode::getOPtype(DFGNode *child)
+{
+	assert(std::find(children.begin(), children.end(), child) != children.end());
+	assert(childrenOPType.find(child) != childrenOPType.end());
+	return childrenOPType[child];
+}
+
+bool CGRAXMLCompile::DFGNode::isMemOp()
+{
+	if (this->op.compare("LOAD") == 0)
+	{
+		return true;
+	}
+	else if (this->op.compare("LOADH") == 0)
+	{
+		return true;
+	}
+	else if (this->op.compare("LOADB") == 0)
+	{
+		return true;
+	}
+	else if (this->op.compare("STORE") == 0)
+	{
+		return true;
+	}
+	else if (this->op.compare("STOREH") == 0)
+	{
+		return true;
+	}
+	else if (this->op.compare("STOREB") == 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
