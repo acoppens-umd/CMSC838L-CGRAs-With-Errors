@@ -15,7 +15,7 @@ void reportDynArrSize(const char* name, uint8_t* arr, uint32_t idx_i, int size);
 void printDynArrSize();
 void clearPrintedArrs();
 void loopEnd(const char* loopName);
-void loopPanic(const char* loopName, const char* errorStatement, uint32_t exitCode);
+void loopPanic(const char* loopName, uint32_t exitCode);
 void loopStart(const char* loopName);
 void outloopValueReport(uint32_t nodeIdx, uint32_t value, uint32_t addr, uint8_t isLoad, uint8_t isHostTrans, uint8_t size);
 

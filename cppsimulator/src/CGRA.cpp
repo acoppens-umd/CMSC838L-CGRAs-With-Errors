@@ -12,6 +12,17 @@
 #include <cstdlib>
 #include <assert.h>
 
+bool ends_with(const std::string& str, const std::string& suffix) {
+    // Check if the string is shorter than the suffix
+    if (str.length() < suffix.length()) {
+        return false;
+    }
+    
+    // Compare the suffix part of the main string
+    // str.compare(position, length, other_string)
+    return str.compare(str.length() - suffix.length(), suffix.length(), suffix) == 0;
+}
+
 namespace HyCUBESim {
 
 CGRA::CGRA(int SizeX, int SizeY,int type, int MemSize) {
@@ -235,7 +246,11 @@ int CGRA::parseDMEM(std::string DMEMFileName,std::string memallocFileName) {
 		std::getline(iss,pre,',');
 		std::getline(iss,post,',');
 
-		addr = spm_base_addr[var_name]+atoi(offset.c_str());
+		if (ends_with(var_name, "carry")) { 
+			addr = spm_base_addr[var_name.substr(0, var_name.length() - 5)]+atoi(offset.c_str()) + 4;
+		} else {
+			addr = spm_base_addr[var_name]+atoi(offset.c_str());
+		}
 
 		//LOG(SIMULATOR) << addr << "," << pre << "\n";
 		InterestedAddrList.push_back(addr);
@@ -291,7 +306,8 @@ void CGRA::invokeCGRA(HyCUBESim::CGRA& cgraInstance) {
 }
 
 int CGRA::executeCycle(int kII) {
-	std::cout << "Executing Cycle " << kII << std::endl;
+	std::cout << "executing cycle " << kII << std::endl;
+
 	for (int y = 0; y < sizeY; ++y) {
 		for (int x = 0; x < sizeX; ++x) {
 			CGRATiles[y][x]->execute(kII);

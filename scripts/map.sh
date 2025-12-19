@@ -23,10 +23,16 @@ python $mapper_dir/update_mem_alloc.py $JSON_ARCH $2_mem_alloc.txt $BANK_SIZE $N
 export ARCH=""
 export PRINT_BIN=""
 
-$mapper_dir/build/src/cgra_xml_mapper -d $2_PartPredDFG.xml \
+minII=0
+
+if [[ -v 4 ]]; then
+    minII=$4
+fi
+
+$mapper_dir/build/src/cgra_xml_mapper -d ${2}_*DFG.xml \
     -x 4 -y 4 \
     -j $JSON_ARCH \
-    -i 0 -t HyCUBE_4REG -m 0
+    -i $minII -t HyCUBE_4REG -m 0
 
 cp *.bin ../simulation
 cp *_mem_alloc.txt ../simulation

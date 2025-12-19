@@ -20,6 +20,8 @@ mkdir -p $this_eval/dfggen
 mkdir -p $this_eval/mapping
 mkdir -p $this_eval/simulation
 
+dfg_strategy=PartPred
+
 cp ./kernels/src/bin/$1.rs $this_eval/dfggen
 
 if [[ -z "${3:-}" || "$3" = "dfggen" ]]; then

@@ -8,7 +8,7 @@
 
 // Returns an inorder traversal of the list representing a tree
 __attribute__((noinline))
-void binary_traverse(int tree_list[], int traversal[]) {
+void binary_traverse(int tree_list[NUM_ELEMENTS_IN_LIST], int traversal[NUM_ELEMENTS_IN_LIST]) {
     unsigned int curr_index = 0;
     unsigned int prev_index = NUM_ELEMENTS_IN_LIST;
     unsigned int curr_level = 0;

@@ -2092,7 +2092,7 @@ void AllocateSPMBanks(std::unordered_set<Value *> &outer_vals,
 	{
 		Value *outer_val = *it;
 		LLVM_DEBUG(outer_val->dump());
-		int size = DL.getTypeAllocSize(outer_val->getType());
+		int size = std::max((int)DL.getTypeAllocSize(outer_val->getType()), 4);
 		LLVM_DEBUG(dbgs() <<" Size:" << size << "\n");
 		assert(size <= bank_size); // assume the size of each array is not bigger than the bank size
 		variable_sizes_bytes[outer_val] = size;
@@ -2419,6 +2419,7 @@ struct dfggenPass : public FunctionPass
 			{
 				LoopDFG = new DFGFullPred(F.getName().str() + "_" + munitName, &loopNames, mappingUnitMap[munitName].lp);
 				DFGFullPred *LoopDFG_PP = static_cast<DFGFullPred *>(LoopDFG);
+				LoopDFG->setKernelName(F.getName().str());
 				LoopDFG_PP->SE = SE;
 			}
 			else if (dfgType == "Trig")
@@ -2512,7 +2513,7 @@ struct dfggenPass : public FunctionPass
 #ifdef REMOVE_AGI
 			return true;
 #endif
-			if(dfgType == "PartPred"){
+			if(dfgType == "PartPred" || dfgType == "FullPred"){
 				std::unordered_set<Value *> outVals;
 				std::unordered_map<Value *, GetElementPtrInst *> arrPtrs;
 				std::unordered_map<Value *, int> mem_acceses; // base pointer name : number of memory accesses

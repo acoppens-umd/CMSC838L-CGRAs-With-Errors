@@ -175,10 +175,10 @@ int main(int argc, char* argv[]) {
 
 #endif
 	//20 cycles for epilogue
-	//for(int i = 0; i < 20;i++){
-	//	cgraInstance.executeCycle(count);
-	//	count++;
-	//}
+	for(int i = 0; i < 20;i++){
+		cgraInstance.executeCycle(count);
+		count++;
+	}
 	cgraInstance.printInterestedAddrOutcome();
 
 #ifdef ARCHI_16BIT

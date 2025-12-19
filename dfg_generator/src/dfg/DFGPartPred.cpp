@@ -1437,11 +1437,6 @@ void DFGPartPred::scheduleASAP() {
 
 
 			for(dfgNode* child : node->getChildren()){
-				if (child->getNode() && child->getNode()->getOpcode() == Instruction::Call) {
-					LLVM_DEBUG(dbgs() << "***************Found Call Instruction as Child\n");
-					LLVM_DEBUG(node->getNode()->dump());
-					LLVM_DEBUG(child->getNode()->dump());
-				}
 				bool isBackEdge = node->childBackEdgeMap[child];
 				if(!isBackEdge){
 					//					nqv.push_back(child);
@@ -1461,19 +1456,6 @@ void DFGPartPred::scheduleASAP() {
 #ifdef REMOVE_AGI
 	LLVM_DEBUG(dbgs() << "Visited nodes size : " << visitedNodes.size() << ", Nodes list size:" << NodeList.size() << endl);
 #else
-	std::vector<dfgNode*> differenceVector;
-	std::set<dfgNode*> NodeSet(NodeList.begin(), NodeList.end());
-	std::set_difference(visitedNodes.begin(), visitedNodes.end(),
-						NodeSet.begin(), NodeSet.end(),
-						std::back_inserter(differenceVector));
-
-	LLVM_DEBUG(dbgs() << "Comparing " << visitedNodes.size() << " with " << NodeSet.size() << "\n");
-	if (differenceVector.size() != 0)				
-		LLVM_DEBUG(dbgs() << "Visited Unlisted Nodes: \n");
-	for (dfgNode* node : differenceVector) {
-		LLVM_DEBUG(dbgs() << "   Node: \n");
-		LLVM_DEBUG(node->getNode()->dump());
-	}
 	assert(visitedNodes.size() == NodeList.size());
 #endif
 }
@@ -1852,15 +1834,6 @@ void DFGPartPred::printNewDFGXML() {
 
 				if(!found){
 					LLVM_DEBUG(dbgs() << "node = " << node->getIdx() <<"child getNameType= " << child->getNameType() << ", child = " << child->getIdx() << "\n");
-					LLVM_DEBUG(dbgs() << "this: \n");
-					LLVM_DEBUG(node->getNode()->dump());
-					LLVM_DEBUG(dbgs() << "child has ancestors: \n");
-					for (dfgNode * anc : child->getAncestors()) {
-						LLVM_DEBUG(anc->getNode()->dump());
-					}
-					if (child->getNameType().compare("OutLoopSTORE")==0) {
-						
-					}
 				}
 
 				assert(found);

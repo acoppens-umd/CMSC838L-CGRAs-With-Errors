@@ -51,14 +51,21 @@ std::string CGRAXMLCompile::DFGNode::getBinaryString() {
 	   else if(op == "ADD_WO") {
 			   return "00100010";
 	   }
+	   else if(op == "UADD_WO") {
+			   return "00100110";
+	   }
        else if(op == "SUB"){
                return "00000010";
        }
        else if(op == "MUL"){
                return "00000011";
        }
+	   //ALEX
 	   else if(op == "MUL_WO") {
 			   return "00100011";
+	   }
+	   else if(op == "UMUL_WO") {
+			   return "00100111";
 	   }
        else if(op == "SEXT"){
                return "00000100";

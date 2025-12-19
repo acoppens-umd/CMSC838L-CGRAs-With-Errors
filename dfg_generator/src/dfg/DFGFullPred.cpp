@@ -61,7 +61,8 @@ void DFGFullPred::connectBBTrig(){
 
 void DFGFullPred::generateTrigDFGDOT(Function &F){
 
-
+	std::set<exitNode> exitNodes;
+	getLoopExitConditionNodes(exitNodes);
 //	connectBB();
 	removeAlloc();
 	connectBBTrig();
@@ -75,7 +76,10 @@ void DFGFullPred::generateTrigDFGDOT(Function &F){
 	fillCMergeMutexNodes();
 
 
+	addLoopExitStoreHyCUBE(exitNodes);
 	constructCMERGETree();
+
+
 
 //	printDOT(this->name + "_PartPredDFG.dot"); return;
 	handlestartstop();

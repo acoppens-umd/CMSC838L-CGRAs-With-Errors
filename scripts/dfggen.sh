@@ -35,11 +35,11 @@ opt -load-pass-plugin $dfg_generator_dir/build/src/libRemoveIntrinsics.so -passe
 
 echo ">>>>PRODUCING DFG<<<<"
 
-opt -load $dfg_generator_dir/build/src/libdfggenPass.so -fn $2 -nobanks 2 -banksize 8192 -type PartPred -enable-new-pm=0 -dfggen $1_min_max_opt.ll -S -o $1_opt_instrument.ll -debug
+opt -load $dfg_generator_dir/build/src/libdfggenPass.so -fn $2 -nobanks 2 -banksize 8192 -type $dfg_strategy -enable-new-pm=0 -dfggen $1_min_max_opt.ll -S -o $1_opt_instrument.ll -debug
 
 echo ">>>>PRODUCING PDF<<<<"
 
-dot -Tpdf $2_PartPredDFG.dot -o $2_PartPredDFG.pdf
+dot -Tpdf ${2}_PartPredDFG.dot -o ${2}_PartPredDFG.pdf
 
 echo ">>>>PRODUCING instrumentation.o<<<<"
 
@@ -73,7 +73,7 @@ mkdir ./memtraces
 ./final
 
 cp $2_mem_alloc.txt ../mapping/$2_mem_alloc.txt
-cp $2_PartPredDFG.xml ../mapping/$2_PartPredDFG.xml
+cp ${2}_*DFG.xml ../mapping/
 cp $2_panic_codes.txt ../simulation/$2_panic_codes.txt
 
 cd $top_dir

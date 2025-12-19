@@ -270,16 +270,14 @@ void loopEnd(const char* loopName){
 	loopRunIdx[ln]++;
 }
 
-void loopPanic(const char* loopName, const char* errorStatement, uint32_t exitCode){
+void loopPanic(const char* loopName, uint32_t exitCode){
 	data_morpher["loopend"].post_data.push_back(exitCode);	
 
 	std::string ln(loopName);
-	std::string es(errorStatement);
 	PrintDataMorpher(ln);
 	fclose(currentFiles[ln]);
 	loopRunIdx[ln]++;
 	cout << ln <<"------------LOOP PANIC---------------- Iteration" << loopRunIdx[ln] <<" \n";
-	cout << ln <<"Panic Message " << es << "\n";
 }
 
 void loopTraceOpen(const char* fnName){

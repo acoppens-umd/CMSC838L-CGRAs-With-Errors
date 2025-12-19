@@ -6179,6 +6179,9 @@ DFG::DFG(std::string name, std::map<Loop *, std::string> *lnPtr)
 	HyCUBEInsStrings[ADD_WO] = "ADD_WO";
 	HyCUBEInsBinary[ADD_WO] = 0 | (0b100010);
 
+	HyCUBEInsStrings[UADD_WO] = "UADD_WO";
+	HyCUBEInsBinary[UADD_WO] = 0 | (0b100110);
+
 	HyCUBEInsStrings[SUB] = "SUB";
 	HyCUBEInsBinary[SUB] = 0 | (0b00010);
 
@@ -6187,6 +6190,9 @@ DFG::DFG(std::string name, std::map<Loop *, std::string> *lnPtr)
 
 	HyCUBEInsStrings[MUL_WO] = "MUL_WO";
 	HyCUBEInsBinary[MUL_WO] = 0 | (0b100011);
+
+	HyCUBEInsStrings[UMUL_WO] = "UMUL_WO";
+	HyCUBEInsBinary[UMUL_WO] = 0 | (0b100111);
 
 	HyCUBEInsStrings[SEXT] = "SEXT";
 	HyCUBEInsBinary[SEXT] = 0 | (0b00100);
@@ -6547,6 +6553,14 @@ int DFG::nameNodes()
 				} else if (functionName == "llvm.sadd.with.overflow.i32") {
 					LLVM_DEBUG(dbgs() << "Adding Add with Overflow \n");
 					node->setFinalIns(ADD_WO);
+					break;
+				} else if (functionName == "llvm.uadd.with.overflow.i32") {
+					LLVM_DEBUG(dbgs() << "Adding Unsigned Add with Overflow \n");
+					node->setFinalIns(UADD_WO);
+					break;
+				} else if (functionName == "llvm.umul.with.overflow.i32") {
+					LLVM_DEBUG(dbgs() << "Adding Unsigned Multiply with Overflow \n");
+					node->setFinalIns(UMUL_WO);
 					break;
 				}
 				}
@@ -11420,7 +11434,7 @@ void DFG::InstrumentInOutVars(Function &F, std::unordered_map<Value *, int> mem_
 			"loopEnd", FunctionType::getVoidTy(Ctx), Type::getInt8PtrTy(Ctx));
 
 	auto loopPanicFn = F.getParent()->getOrInsertFunction(
-			"loopPanic", FunctionType::getVoidTy(Ctx), Type::getInt8PtrTy(Ctx), Type::getInt8PtrTy(Ctx), Type::getInt32Ty(Ctx));
+			"loopPanic", FunctionType::getVoidTy(Ctx), Type::getInt8PtrTy(Ctx), Type::getInt32Ty(Ctx));
 
 	//these should be called prior to the loop start/end to report all the variables that are being accessed in the loop
 	auto live_in_report_FN = F.getParent()->getOrInsertFunction(
@@ -11503,7 +11517,6 @@ void DFG::InstrumentInOutVars(Function &F, std::unordered_map<Value *, int> mem_
 		Value* ptr = it->first;
 		LLVM_DEBUG(dbgs() << "\n---ptr_name = " << ptr->getNameOrAsOperand() << "\n");
 		LLVM_DEBUG(ptr->dump());
-
 
 		assert(array_pointer_sizes.find(ptr->getNameOrAsOperand()) != array_pointer_sizes.end());
 		int size = array_pointer_sizes[ptr->getNameOrAsOperand()];
@@ -11698,43 +11711,46 @@ void DFG::InstrumentInOutVars(Function &F, std::unordered_map<Value *, int> mem_
 						found_panic = true;
 
 						IRBuilder<> builder(CI);
-						llvm::Value* panicStr;
-
-						if (CI->getNumOperands() > 1) {
-							panicStr = CI->getArgOperand(0);
-						} else {
-							panicStr = findGlobalUse(Callee);
-						}
 
 						int exitCode = getExitCode(trans.first, exitBB);
 						llvm::ConstantInt *exitCodeConst = llvm::ConstantInt::get(Type::getInt32Ty(Ctx), 
 											   									  exitCode, false);
 
-						if (GlobalVariable *GV = dyn_cast<GlobalVariable>(panicStr)) {
-							if (ConstantDataArray *CA = dyn_cast<ConstantDataArray>(GV->getInitializer())) {
-								if (CA->isString()) {
-									LLVM_DEBUG(dbgs() << "Adding Exit Code " << exitCode << " " << CA->getAsString() << "\n");
-									this->exitMessages[exitCode] = CA->getAsString();
-								}
-							} else {
-								if (ConstantStruct *CS = dyn_cast<ConstantStruct>(GV->getInitializer())) {
-									Constant *Inner = CS->getOperand(0);
+						if (Name.contains("panic_bounds_check")) {
+							LLVM_DEBUG(dbgs() << "Out-of-bounds Access");
+							this->exitMessages[exitCode] = "Out-of-bounds Access";
+						} else {
+							llvm::Value* panicStr;
 
-									if (ConstantDataArray *CA = dyn_cast<ConstantDataArray>(Inner)) {
-										if (CA->isString()) {
-											LLVM_DEBUG(dbgs() << "Adding Exit Code " << exitCode << " " << CA->getAsString() << "\n");
-											this->exitMessages[exitCode] = CA->getAsString();
+							if (CI->getNumOperands() > 1) {
+								panicStr = CI->getArgOperand(0);
+							} else {
+								panicStr = findGlobalUse(Callee);
+							}
+
+							if (GlobalVariable *GV = dyn_cast<GlobalVariable>(panicStr)) {
+								if (ConstantDataArray *CA = dyn_cast<ConstantDataArray>(GV->getInitializer())) {
+									if (CA->isString()) {
+										LLVM_DEBUG(dbgs() << "Adding Exit Code " << exitCode << " " << CA->getAsString() << "\n");
+										this->exitMessages[exitCode] = CA->getAsString();
+									}
+								} else {
+									if (ConstantStruct *CS = dyn_cast<ConstantStruct>(GV->getInitializer())) {
+										Constant *Inner = CS->getOperand(0);
+
+										if (ConstantDataArray *CA = dyn_cast<ConstantDataArray>(Inner)) {
+											if (CA->isString()) {
+												LLVM_DEBUG(dbgs() << "Adding Exit Code " << exitCode << " " << CA->getAsString() << "\n");
+												this->exitMessages[exitCode] = CA->getAsString();
+											}
 										}
 									}
 								}
 							}
-						} else {
-							LLVM_DEBUG(dbgs() << "panicStr is not a GV\n");
 						}
-						
-						
+
 						Value *loopName = builder.CreateGlobalStringPtr(kernelname);
-						builder.CreateCall(loopPanicFn,{loopName, panicStr, exitCodeConst});
+						builder.CreateCall(loopPanicFn,{loopName, exitCodeConst});
 					}
 				}
 			}

@@ -46,5 +46,7 @@
 #define STORED 33
 #define ADD_WO 34
 #define MUL_WO 35
+#define UADD_WO 36
+#define UMUL_WO 37
 
 #endif /* OPCODES_H_ */

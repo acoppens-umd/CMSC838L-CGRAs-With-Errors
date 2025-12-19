@@ -139,6 +139,18 @@ namespace HyCUBESim {
 				ALUTempOut = (static_cast<DataType>(overflow) << 32) | static_cast<uint64_t>(sum & 0xFFFFFFFFu);
 				}
 				break;
+			case UADD_WO:
+				LOG(SIMULATOR) << ": UADD_WO," << operand1 << "," << operand2 << "\n";
+				{
+				uint32_t a = static_cast<uint32_t>(operand1 & 0xFFFFFFFFu);
+				uint32_t b = static_cast<uint32_t>(operand2 & 0xFFFFFFFFu);
+				uint64_t sum = static_cast<uint64_t>(a) + static_cast<uint64_t>(b);
+
+				bool overflow = sum > std::numeric_limits<uint32_t>::max();
+
+				ALUTempOut = (static_cast<DataType>(overflow) << 32) | static_cast<uint64_t>(sum & 0xFFFFFFFFu);
+				}
+				break;
 			case SUB :
 				LOG(SIMULATOR) << ": SUB," << operand1 << "," << operand2 << "\n";
 				ALUTempOut = operand1 - operand2;
@@ -150,8 +162,6 @@ namespace HyCUBESim {
 			case MUL_WO:
 				LOG(SIMULATOR) << ": MUL_WO," << operand1 << "," << operand2 << "\n";
 				{
-				std::cout << "Tile X" << this->X << " Y" << this->Y << ": ";
-				std::cout << "MUL_WO of " << operand1 << " and " << operand2 << "\n";
 				int32_t a = static_cast<int32_t>(operand1 & 0xFFFFFFFFu);
 				int32_t b = static_cast<int32_t>(operand2 & 0xFFFFFFFFu);
 				int64_t prod = static_cast<int64_t>(a) * static_cast<int64_t>(b);
@@ -160,6 +170,20 @@ namespace HyCUBESim {
        							prod < std::numeric_limits<int32_t>::min();
 
 				ALUTempOut = (static_cast<DataType>(overflow) << 32) | static_cast<uint64_t>(prod & 0xFFFFFFFFu);
+				//std::cout << "MUL_WO " << operand1 << " x " << operand2 << " = " << ALUTempOut << std::endl;
+				}
+				break;
+			case UMUL_WO:
+				LOG(SIMULATOR) << ": UMUL_WO," << operand1 << "," << operand2 << "\n";
+				{
+				uint32_t a = static_cast<uint32_t>(operand1 & 0xFFFFFFFFu);
+				uint32_t b = static_cast<uint32_t>(operand2 & 0xFFFFFFFFu);
+				uint64_t prod = static_cast<uint64_t>(a) * static_cast<uint64_t>(b);
+
+				bool overflow = prod > std::numeric_limits<uint32_t>::max();
+
+				ALUTempOut = (static_cast<DataType>(overflow) << 32) | static_cast<uint64_t>(prod & 0xFFFFFFFFu);
+				//std::cout << "UMUL_WO " << operand1 << " x " << operand2 << " = " << ALUTempOut << std::endl;
 				}
 				break;
 			case SEXT :
@@ -196,6 +220,15 @@ namespace HyCUBESim {
 				break;
 			case SELECT :
 				LOG(SIMULATOR) << ": SELECT," << operand1 << "," << operand2 << "\n";
+				if (I1isvalid && I2isvalid) {
+					std::cout << "Failure X" << this->X << " Y" << this->Y << std::endl;
+				} else if (I1isvalid) {
+					//std::cout << "I1valid X" << this->X << " Y" << this->Y << std::endl;
+				} else if (I2isvalid) {
+					//std::cout << "I2valid X" << this->X << " Y" << this->Y << std::endl;
+				} else {
+					//std::cout << "no valid X" << this->X << " Y" << this->Y << std::endl;
+				}
 				assert(!(I1isvalid && I2isvalid));
 				if(I1isvalid){
 					ALUTempOut=operand1;
@@ -214,10 +247,13 @@ namespace HyCUBESim {
 				LOG(SIMULATOR) << ": CMERGE," << operand1 << "," << operand2 << "\n";
 				//dmd ALUTempOut = operand1;
 				//dmd:
+
 				if(I2isvalid){
+					//std::cout << "Passing I2 " << operand2 << " X" << this->X << " Y" << this->Y << std::endl;
 					ALUTempOut=operand2;
 				}
 				else{
+					//std::cout << "Passing I1 " << operand2 << " X" << this->X << " Y" << this->Y << std::endl;
 					ALUTempOut = operand1;
 				}
 				break;
@@ -257,9 +293,7 @@ namespace HyCUBESim {
 #else
 				ALUTempOut = load(operand2,4);
 #endif
-				std::cout << "Tile X" << this->X << " Y" << this->Y << ": ";
-
-				std::cout << "Loaded " << ALUTempOut << " from " << operand2 << std::endl;
+				//std::cout << "Loading " << ALUTempOut << " from " << operand2 << " X" << this->X << " Y" << this->Y << std::endl;
 				break;
 			case LOADH :
 				LOG(SIMULATOR) << ": LOADH," << operand1 << "," << operand2 << "\n";
@@ -275,18 +309,16 @@ namespace HyCUBESim {
 				break;
 			case STORE :
 				LOG(SIMULATOR) << ": STORE," << operand1 << "," << operand2 << "\n";
-				std::cout << "Tile X" << this->X << " Y" << this->Y << ": ";
 				if(!Pisvalid || predicate){
 					//only store after checking predicate
 					//other operations dont care as the output is not routed.
+					//std::cout << "Storing " << operand1 << " at " << operand2 << " X" << this->X << " Y" << this->Y << std::endl;
 #ifdef ARCHI_16BIT
 					ALUTempOut = store(operand1,operand2,2);
 #else
 					ALUTempOut = store(operand1,operand2,4);
 #endif
-				} else {
-					std::cout << "Did not store " << operand1 << " at " << operand2 << std::endl;
-				}
+				} 
 				break;
 			case STOREH :
 				LOG(SIMULATOR) << ": STOREH," << operand1 << "," << operand2 << "\n";
@@ -299,6 +331,8 @@ namespace HyCUBESim {
 			case STOREB :
 				LOG(SIMULATOR) << ": STOREB," << operand1 << "," << operand2 << "\n";
 				if(!Pisvalid || predicate){
+					//std::cout << "StoringB " << operand1 << " at " << operand2 << " X" << this->X << " Y" << this->Y << std::endl;
+
 					//only store after checking predicate
 					//other operations dont care as the output is not routed.
 					ALUTempOut = store(operand1,operand2,1);
@@ -983,7 +1017,6 @@ namespace HyCUBESim {
 	}
 
 	DataType CGRATile::store(DataType op1, DataType op2, int size) {
-		std::cout << "Should store " << op1 << " at " << op2 << std::endl;;
 		assert(size == 1 || size == 2 || size == 4 || size == 8);
 		DataType res = 0;
 		if(size == 1){
