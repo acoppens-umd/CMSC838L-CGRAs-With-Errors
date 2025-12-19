@@ -7,6 +7,9 @@
 top_dir=$PWD
 
 evaluation_runs_dir=$top_dir/evaluation_runs
+
+mkdir -p $evaluation_runs
+
 dfg_generator_dir=$top_dir/dfg_generator
 mapper_dir=$top_dir/mapper
 cppsimulator_dir=$top_dir/cppsimulator
