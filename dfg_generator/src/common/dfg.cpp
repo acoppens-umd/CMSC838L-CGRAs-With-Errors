@@ -1305,8 +1305,6 @@ int DFG::removeNode(dfgNode *n)
 	for (int i = 0; i < nodePtr->getAncestors().size(); ++i)
 	{
 		nodeTmp = nodePtr->getAncestors()[i];
-		LLVM_DEBUG(dbgs() << "Parent: ");
-		LLVM_DEBUG(nodeTmp->getNode()->dump());
 		assert(nodeTmp->removeChild(nodePtr) != -1);
 
 		for (int j = 0; j < nodePtr->getChildren().size(); ++j)
@@ -6180,7 +6178,10 @@ DFG::DFG(std::string name, std::map<Loop *, std::string> *lnPtr)
 	HyCUBEInsBinary[ADD_WO] = 0 | (0b100010);
 
 	HyCUBEInsStrings[UADD_WO] = "UADD_WO";
-	HyCUBEInsBinary[UADD_WO] = 0 | (0b100110);
+	HyCUBEInsBinary[UADD_WO] = 0 | (0b100100);
+
+	HyCUBEInsStrings[SUB_WO] = "SUB_WO";
+	HyCUBEInsBinary[SUB_WO] = 0 | (0b100111);
 
 	HyCUBEInsStrings[SUB] = "SUB";
 	HyCUBEInsBinary[SUB] = 0 | (0b00010);
@@ -6192,7 +6193,10 @@ DFG::DFG(std::string name, std::map<Loop *, std::string> *lnPtr)
 	HyCUBEInsBinary[MUL_WO] = 0 | (0b100011);
 
 	HyCUBEInsStrings[UMUL_WO] = "UMUL_WO";
-	HyCUBEInsBinary[UMUL_WO] = 0 | (0b100111);
+	HyCUBEInsBinary[UMUL_WO] = 0 | (0b100101);
+
+	HyCUBEInsStrings[ABS] = "ABS";
+	HyCUBEInsBinary[ABS] = 0 | (0b100110);
 
 	HyCUBEInsStrings[SEXT] = "SEXT";
 	HyCUBEInsBinary[SEXT] = 0 | (0b00100);
@@ -6554,6 +6558,10 @@ int DFG::nameNodes()
 					LLVM_DEBUG(dbgs() << "Adding Add with Overflow \n");
 					node->setFinalIns(ADD_WO);
 					break;
+				} else if (functionName == "llvm.ssub.with.overflow.i32") {
+					LLVM_DEBUG(dbgs() << "Adding Sub with Overflow \n");
+					node->setFinalIns(SUB_WO);
+					break;
 				} else if (functionName == "llvm.uadd.with.overflow.i32") {
 					LLVM_DEBUG(dbgs() << "Adding Unsigned Add with Overflow \n");
 					node->setFinalIns(UADD_WO);
@@ -6561,6 +6569,10 @@ int DFG::nameNodes()
 				} else if (functionName == "llvm.umul.with.overflow.i32") {
 					LLVM_DEBUG(dbgs() << "Adding Unsigned Multiply with Overflow \n");
 					node->setFinalIns(UMUL_WO);
+					break;
+				} else if (functionName == "llvm.abs.i32") {
+					LLVM_DEBUG(dbgs() << "Adding Abs \n");
+					node->setFinalIns(ABS);
 					break;
 				}
 				}
@@ -11483,6 +11495,20 @@ void DFG::InstrumentInOutVars(Function &F, std::unordered_map<Value *, int> mem_
 			Type::getInt32Ty(Ctx) //variable data
 	);
 
+	auto live_in_report_intvar_64_FN = F.getParent()->getOrInsertFunction(
+			"LiveInReportIntermediate64Var",
+			FunctionType::getVoidTy(Ctx),
+			Type::getInt8PtrTy(Ctx), //variable name
+			Type::getInt64Ty(Ctx) //variable data
+	);
+
+	auto live_out_report_intvar_64_FN = F.getParent()->getOrInsertFunction(
+			"LiveOutReportIntermediate64Var",
+			FunctionType::getVoidTy(Ctx),
+			Type::getInt8PtrTy(Ctx), //variable name
+			Type::getInt64Ty(Ctx) //variable data
+	);
+
 	//ALEX
 	auto live_out_report_double_intvar_FN = F.getParent()->getOrInsertFunction(  
 			"LiveOutReportDoubleIntermediateVar",
@@ -11546,12 +11572,16 @@ void DFG::InstrumentInOutVars(Function &F, std::unordered_map<Value *, int> mem_
 					LLVM_DEBUG(dbgs() << "Adding LiveInReportPtrTypeUsage() call\n");
 					LLVM_DEBUG(ptrs->dump());
 					if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(ptrs)) {
-						LLVM_DEBUG(dbgs() << "GEP operand 2 =  ");
-						LLVM_DEBUG(GEP->getOperand(2)->dump());
-						LLVM_DEBUG(GEP->getOperand(0)->dump());
+						LLVM_DEBUG(dbgs() << "GEP operands =  ");
 						LLVM_DEBUG(dbgs() << "array base = " << GEP->getOperand(0)->getNameOrAsOperand() << "\n");
 						Value* gepop0 = builder.CreateGlobalStringPtr(GEP->getOperand(0)->getNameOrAsOperand());//base ptr of array
-						Value * gepop2= GEP->getOperand(2);// array offset
+
+						Value * gepop2;
+						if (GEP->getNumOperands() == 3){
+							gepop2= GEP->getOperand(2);// array offset
+						} else {
+							gepop2= GEP->getOperand(1);
+						}
 						LLVM_DEBUG(dbgs() << "\n");
 
 						Value* ptr_spm_address_val = builder.CreateGlobalStringPtr(std::to_string(spm_base_address[GEP->getOperand(0)]));
@@ -11646,13 +11676,20 @@ void DFG::InstrumentInOutVars(Function &F, std::unordered_map<Value *, int> mem_
 							LLVM_DEBUG(I.dump());
 							Value *val = dyn_cast<Value>(&I);
 							LLVM_DEBUG(val->dump());
+
+							if (ReturnInst *RI = dyn_cast<ReturnInst>(&I)) {
+								if (RI->getReturnValue() == nullptr) {
+									continue;
+								}
+							}
+
 							if(I.getOperand(0)==ptr){
 								Type *valueType = val->getType();
 								LLVM_DEBUG(dbgs() << "lcssa use\n");
 								
 								//ALEX
 								if (valueType == Type::getInt64Ty(Ctx)) {
-									builder.CreateCall(live_out_report_intvar_FN,{ptr_name_val,val});
+									builder.CreateCall(live_out_report_intvar_64_FN,{ptr_name_val,val});
 								} else if (valueType->isAggregateType()) {
 									Value* dataval = builder.CreateExtractValue(val, 0);
 									builder.CreateCall(live_out_report_intvar_FN,{ptr_name_val,dataval});

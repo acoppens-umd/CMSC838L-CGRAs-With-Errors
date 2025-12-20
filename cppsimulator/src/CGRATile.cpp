@@ -123,7 +123,8 @@ namespace HyCUBESim {
 				break;
 			case ADD :
 				LOG(SIMULATOR) << ": ADD," << operand1 << "," << operand2 << "\n";
-				ALUTempOut =  operand1 + operand2;
+				ALUTempOut = static_cast<DataType>(static_cast<int32_t>(operand1) + static_cast<int32_t>(operand2));
+				std::cout << "ADD " << operand1 << " + " << operand2 << " = " << ALUTempOut << std::endl;
 				break;
 			//ALEX
 			case ADD_WO:
@@ -151,13 +152,26 @@ namespace HyCUBESim {
 				ALUTempOut = (static_cast<DataType>(overflow) << 32) | static_cast<uint64_t>(sum & 0xFFFFFFFFu);
 				}
 				break;
+			case SUB_WO:
+				LOG(SIMULATOR) << ": SUB_WO," << operand1 << "," << operand2 << "\n";
+				{
+				int32_t a = static_cast<int32_t>(operand1 & 0xFFFFFFFFu);
+				int32_t b = static_cast<int32_t>(operand2 & 0xFFFFFFFFu);
+				int64_t sum = static_cast<int64_t>(a) - static_cast<int64_t>(b);
+
+				bool overflow = sum > std::numeric_limits<int32_t>::max() ||
+       							sum < std::numeric_limits<int32_t>::min();
+
+				ALUTempOut = (static_cast<DataType>(overflow) << 32) | static_cast<uint64_t>(sum & 0xFFFFFFFFu);
+				}
+				break;
 			case SUB :
 				LOG(SIMULATOR) << ": SUB," << operand1 << "," << operand2 << "\n";
-				ALUTempOut = operand1 - operand2;
+				ALUTempOut = static_cast<uint32_t>(operand1) - static_cast<uint32_t>(operand2);
 				break;
 			case MUL :
 				LOG(SIMULATOR) << ": MUL," << operand1 << "," << operand2 << "\n";
-				ALUTempOut = operand1 * operand2;
+				ALUTempOut = static_cast<DataType>(static_cast<int32_t>(operand1) * static_cast<int32_t>(operand2));
 				break;
 			case MUL_WO:
 				LOG(SIMULATOR) << ": MUL_WO," << operand1 << "," << operand2 << "\n";
@@ -184,6 +198,16 @@ namespace HyCUBESim {
 
 				ALUTempOut = (static_cast<DataType>(overflow) << 32) | static_cast<uint64_t>(prod & 0xFFFFFFFFu);
 				//std::cout << "UMUL_WO " << operand1 << " x " << operand2 << " = " << ALUTempOut << std::endl;
+				}
+				break;
+			case ABS:
+				LOG(SIMULATOR) << ": ABS," << operand1 << "," << operand2 << "\n";
+				{
+				uint32_t mask = operand1 >> 31;
+
+				ALUTempOut = (operand1 ^ mask) - mask;
+
+				std::cout << "ABS " << operand1 << " = " << ALUTempOut << std::endl;
 				}
 				break;
 			case SEXT :
@@ -331,7 +355,7 @@ namespace HyCUBESim {
 			case STOREB :
 				LOG(SIMULATOR) << ": STOREB," << operand1 << "," << operand2 << "\n";
 				if(!Pisvalid || predicate){
-					//std::cout << "StoringB " << operand1 << " at " << operand2 << " X" << this->X << " Y" << this->Y << std::endl;
+					std::cout << "StoringB " << operand1 << " at " << operand2 << " X" << this->X << " Y" << this->Y << std::endl;
 
 					//only store after checking predicate
 					//other operations dont care as the output is not routed.
@@ -358,6 +382,7 @@ namespace HyCUBESim {
 				break;
 			default :
 				LOG(SIMULATOR) << "unknown opcode = " << currIns.opcode << "\n";
+				std::cout << "unknown opcode = " << static_cast<int>(currIns.opcode) << std::endl;
 				assert(false);
 				LOG(SIMULATOR) << ": ????," << operand1 << "," << operand2 << "\n";
 				break;
@@ -1082,6 +1107,9 @@ void CGRATile::printIns(HyIns ins) {
 				case ADD_WO :
 					LOG(SIMULATOR) << ",OP=" << "ADD_WO";
 					break;
+				case UADD_WO :
+					LOG(SIMULATOR) << ",OP=" << "UADD_WO";
+					break;
 				case SUB :
 					LOG(SIMULATOR) << ",OP=" << "SUB";
 					break;
@@ -1090,6 +1118,12 @@ void CGRATile::printIns(HyIns ins) {
 					break;
 				case MUL_WO :
 					LOG(SIMULATOR) << ",OP=" << "MUL_WO";
+					break;
+				case UMUL_WO :
+					LOG(SIMULATOR) << ",OP=" << "UMUL_WO";
+					break;
+				case ABS :
+					LOG(SIMULATOR) << ",OP=" << "ABS";
 					break;
 				case SEXT :
 					LOG(SIMULATOR) << ",OP=" << "MUL";

@@ -51,6 +51,8 @@ void LiveInReport2(const char* varname, uint32_t* value, uint32_t size);
 void LiveOutReport(const char* varname, uint8_t* value, uint32_t size);
 void LiveInReportIntermediateVar(const char* varname, uint32_t value);
 void LiveOutReportIntermediateVar(const char* varname, uint32_t value);
+void LiveInReportIntermediate64Var(const char* varname, uint64_t value);
+void LiveOutReportIntermediate64Var(const char* varname, uint64_t value);
 void LiveInReportPtrTypeUsage(const char* varname,const char* varbaseaddr, uint32_t value, uint32_t size);
 
 //ALEX

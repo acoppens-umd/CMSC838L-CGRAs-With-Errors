@@ -52,7 +52,10 @@ std::string CGRAXMLCompile::DFGNode::getBinaryString() {
 			   return "00100010";
 	   }
 	   else if(op == "UADD_WO") {
-			   return "00100110";
+			   return "00100100";
+	   }
+	   else if(op == "SUB_WO") {
+			   return "00100111";
 	   }
        else if(op == "SUB"){
                return "00000010";
@@ -65,7 +68,10 @@ std::string CGRAXMLCompile::DFGNode::getBinaryString() {
 			   return "00100011";
 	   }
 	   else if(op == "UMUL_WO") {
-			   return "00100111";
+			   return "00100101";
+	   }
+	   else if(op == "ABS") {
+			   return "00100110";
 	   }
        else if(op == "SEXT"){
                return "00000100";

@@ -21,7 +21,7 @@ void convolution(int list[], int kernel[], int result[]) {
 
 int main() {
     int list[LIST_LEN] = {1, 2, 3, 4};
-    int kernel[KERNEL_LEN] = {1, 2};
+    int kernel[KERNEL_LEN] = {1, -2};
     int result[RESULT_LEN] = {0};
     convolution(list, kernel, result);
     /*for (int i = 0; i < RESULT_LEN; i++) {

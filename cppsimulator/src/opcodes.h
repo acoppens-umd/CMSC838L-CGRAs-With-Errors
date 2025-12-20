@@ -48,5 +48,7 @@
 #define MUL_WO 35
 #define UADD_WO 36
 #define UMUL_WO 37
+#define ABS 38
+#define SUB_WO 39
 
 #endif /* OPCODES_H_ */

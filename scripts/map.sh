@@ -14,7 +14,7 @@ rm ../simulation/*.bin
 rm ../simulation/*_mem_alloc.txt
 
 JSON_ARCH=hycube_original.json
-JSON_ARCH=$mapper_dir/json_arch/rust/$JSON_ARCH
+JSON_ARCH=$mapper_dir/json_arch/$JSON_ARCH
 BANK_SIZE=8192
 NUM_BANKS=2
 

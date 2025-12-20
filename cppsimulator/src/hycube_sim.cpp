@@ -172,13 +172,16 @@ int main(int argc, char* argv[]) {
 		cgraInstance.executeCycle(count);
 		count++;
 	}
-
 #endif
+
 	//20 cycles for epilogue
-	for(int i = 0; i < 20;i++){
-		cgraInstance.executeCycle(count);
-		count++;
+	if (cgraInstance.dmem[MEM_SIZE / 2 - 1] == 1) {
+		for(int i = 0; i < 20;i++){
+			cgraInstance.executeCycle(count);
+			count++;
+		}
 	}
+	
 	cgraInstance.printInterestedAddrOutcome();
 
 #ifdef ARCHI_16BIT

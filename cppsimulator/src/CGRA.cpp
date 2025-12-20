@@ -291,11 +291,17 @@ void CGRA::invokeCGRA(HyCUBESim::CGRA& cgraInstance) {
         cgraInstance.executeCycle(count);
         count++;
     }
+	if (cgraInstance.dmem[MEM_SIZE - 2] != 1) {
+		return;
+	}
 #else
     while (cgraInstance.dmem[MEM_SIZE / 2 - 1] == 0) {
         cgraInstance.executeCycle(count);
         count++;
     }
+	if (cgraInstance.dmem[MEM_SIZE / 2 - 1] != 1) {
+		return;
+	}
 #endif
 
     // 20 cycles for epilogue

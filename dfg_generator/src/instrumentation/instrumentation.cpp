@@ -741,6 +741,23 @@ void LiveOutReportIntermediateVar(const char* varname, uint32_t value){
 	}
 }
 
+void LiveInReportIntermediate64Var(const char* varname, uint64_t value) {
+	std::string varname_str(varname);
+	uint8_t* value_ptr = (uint8_t*)&value;
+	for(int i=0; i<8; i++){
+		data_morpher[varname_str].pre_data.push_back(value_ptr[i]);
+		data_morpher[varname_str].post_data.push_back(value_ptr[i]);
+	}
+}
+void LiveOutReportIntermediate64Var(const char* varname, uint64_t value) {
+	std::string varname_str(varname);
+	uint8_t* value_ptr = (uint8_t*)&value;
+	for(int i=0; i<8; i++){
+		data_morpher[varname_str].pre_data.push_back(0);
+		data_morpher[varname_str].post_data.push_back(value_ptr[i]);
+	}
+}
+
 //ALEX
 void LiveOutReportDoubleIntermediateVar(const char* varname, uint64_t value){
 	std::string varname_str(varname);
