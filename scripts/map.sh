@@ -18,7 +18,7 @@ JSON_ARCH=$mapper_dir/json_arch/$JSON_ARCH
 BANK_SIZE=8192
 NUM_BANKS=2
 
-python $mapper_dir/update_mem_alloc.py $JSON_ARCH $2_mem_alloc.txt $BANK_SIZE $NUM_BANKS $JSON_ARCH
+python3 $mapper_dir/update_mem_alloc.py $JSON_ARCH $2_mem_alloc.txt $BANK_SIZE $NUM_BANKS $JSON_ARCH
 
 export ARCH=""
 export PRINT_BIN=""

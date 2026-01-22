@@ -87,7 +87,7 @@ typedef struct{
 	std::string name;
 } AddrDataTuple;
 
-static std::map<uint32_t,AddrDataTuple> data;
+static std::map<uint32_t,AddrDataTuple> data_map;
 
 
 typedef struct{
@@ -122,10 +122,10 @@ void printArr(const char* name, uint8_t* arr, int size, uint8_t io, uint32_t add
 			AddrDataTuple tuple;
 			tuple.name = str;
 			tuple.pre_data=arr[i];
-			data[addr+i]=tuple;
+			data_map[addr+i]=tuple;
 		}
 		else{
-			data[addr+i].post_data=arr[i];
+			data_map[addr+i].post_data=arr[i];
 		}
 		std::cout << (int)arr[i] << ",";
 	}
@@ -221,14 +221,14 @@ void outloopValueReport(uint32_t nodeIdx, uint32_t value, uint32_t addr, uint8_t
 			tuple.post_data = bytePtr[i];
 		}
 
-		data[addr+i]=tuple;
+		data_map[addr+i]=tuple;
 	}
 }
 
 void PrintData(std::string ln){
 	std::map<uint32_t,AddrDataTuple>::iterator dataIt;
 	fprintf(currentFiles[ln],"addr,pre-run-data,post-run-data\n");
-	for (dataIt = data.begin(); dataIt != data.end(); ++dataIt) {
+	for (dataIt = data_map.begin(); dataIt != data_map.end(); ++dataIt) {
 		fprintf(currentFiles[ln],"%d,%d,%d\n",dataIt->first,dataIt->second.pre_data,dataIt->second.post_data);
 	}
 }

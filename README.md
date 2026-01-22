@@ -21,9 +21,40 @@ Welcome to **Morpher**, an open-source framework that provides comprehensive sup
 
 # Build and Run Guide for Morpher-v2: Rust Edition
 
-## Prerequisites
+## Dockerfile Set (Recommended)
 
-- An environment running **Ubuntu 22.04**.
+Requires Docker
+
+1. **Build LLVM Base Docker Container**
+
+This step may take upwards of an hour.
+```bash
+docker build -t llvm-base -f Dockerfile.base .
+```
+
+2. **Build Morpher-v2 Docker Container**
+```bash
+docker build -t morpher-env .
+```
+
+3. **Run Interactive Docker Container**
+```bash
+docker run -it --rm -v "$(pwd):/app" morpher-env
+```
+
+4. **In the container: Build Morpher Modules**
+```bash
+bash build_all.sh
+```
+
+5. **In the container: Run Example**
+```bash
+bash eval.sh csr_csr csr_csr_matmul
+```
+
+## Manual Setup (Not Recommended)
+
+- Requires an environment running **Ubuntu 22.04**.
 
 ## Setup and Build Steps
 

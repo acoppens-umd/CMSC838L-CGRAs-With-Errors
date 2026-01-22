@@ -11611,7 +11611,7 @@ void DFG::InstrumentInOutVars(Function &F, std::unordered_map<Value *, int> mem_
 				Value* bitcastedptr = builder.CreateBitCast(it->first, Type::getInt8PtrTy(Ctx));
 
 				//ALEX
-				Optional<uint32_t> object_size = DFG::inferObjectSizeFromProvenance(ptr, *(this->dataLayout), 10);
+				std::optional<uint32_t> object_size = DFG::inferObjectSizeFromProvenance(ptr, *(this->dataLayout), 10);
 				if (object_size)
 					builder.CreateCall(live_in_report_FN,{ptr_name_val,bitcastedptr,
 										llvm::ConstantInt::get(llvm::Type::getInt32Ty(Ctx), *object_size)});
@@ -11657,7 +11657,7 @@ void DFG::InstrumentInOutVars(Function &F, std::unordered_map<Value *, int> mem_
 				LLVM_DEBUG(dbgs() << "Adding LiveOutReport() call\n");
 				Value* bitcastedptr = builder.CreateBitCast(it->first, Type::getInt8PtrTy(Ctx));
 
-				Optional<uint32_t> object_size = DFG::inferObjectSizeFromProvenance(ptr, *(this->dataLayout), 10);
+				std::optional<uint32_t> object_size = DFG::inferObjectSizeFromProvenance(ptr, *(this->dataLayout), 10);
 				if (object_size)
 					builder.CreateCall(live_out_report_FN,{ptr_name_val,bitcastedptr,
 										llvm::ConstantInt::get(llvm::Type::getInt32Ty(Ctx), *object_size)});
@@ -11833,7 +11833,7 @@ Value * DFG::stripPointerCasts(Value *V) {
     }
 }
 
-Optional<uint32_t> DFG::getAllocaSize(AllocaInst *AI, const DataLayout &DL) {
+std::optional<uint32_t> DFG::getAllocaSize(AllocaInst *AI, const DataLayout &DL) {
     Type *AllocatedType = AI->getAllocatedType();
 
     uint64_t ElemSize = DL.getTypeAllocSize(AllocatedType);
@@ -11841,7 +11841,7 @@ Optional<uint32_t> DFG::getAllocaSize(AllocaInst *AI, const DataLayout &DL) {
     if (AI->isArrayAllocation()) {
         auto *CI = dyn_cast<ConstantInt>(AI->getArraySize());
         if (!CI)
-            return None;
+            return std::nullopt;
 
         return ElemSize * CI->getZExtValue();
     }
@@ -11855,12 +11855,12 @@ Value * DFG::getGEPBase(Value *V) {
     return nullptr;
 }
 
-Optional<uint32_t> DFG::inferFromValue(Value *V,
+std::optional<uint32_t> DFG::inferFromValue(Value *V,
                const DataLayout &DL,
                unsigned Depth,
                unsigned MaxDepth) {
     if (Depth > MaxDepth || !V)
-        return None;
+        return std::nullopt;
 
     V = stripPointerCasts(V);
 
@@ -11878,9 +11878,9 @@ Optional<uint32_t> DFG::inferFromValue(Value *V,
     if (auto *Arg = dyn_cast<Argument>(V)) {
         Function *F = Arg->getParent();
         if (F->isDeclaration())
-            return None;
+            return std::nullopt;
 
-        Optional<uint32_t> Result;
+        std::optional<uint32_t> Result;
 
         for (User *U : F->users()) {
             auto *CB = dyn_cast<CallBase>(U);
@@ -11891,26 +11891,26 @@ Optional<uint32_t> DFG::inferFromValue(Value *V,
             auto Size = inferFromValue(Actual, DL, Depth + 1, MaxDepth);
 
             if (!Size)
-                return None; // conflicting or unknown call site
+                return std::nullopt; // conflicting or unknown call site
 
             if (!Result)
                 Result = Size;
             else if (*Result != *Size)
-                return None;
+                return std::nullopt;
         }
 
         return Result;
     }
 
     // Case 4: unknown value
-    return None;
+    return std::nullopt;
 }
 
-Optional<uint32_t> DFG::inferObjectSizeFromProvenance(Value *Ptr,
+std::optional<uint32_t> DFG::inferObjectSizeFromProvenance(Value *Ptr,
                               const DataLayout &DL,
                               unsigned MaxDepth) {
     if (!Ptr || !Ptr->getType()->isPointerTy())
-        return None;
+        return std::nullopt;
 
     return inferFromValue(Ptr, DL, 0, MaxDepth);
 }

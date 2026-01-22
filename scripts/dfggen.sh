@@ -35,7 +35,7 @@ opt -load-pass-plugin $dfg_generator_dir/build/src/libRemoveIntrinsics.so -passe
 
 echo ">>>>PRODUCING DFG<<<<"
 
-opt -load $dfg_generator_dir/build/src/libdfggenPass.so -fn $2 -nobanks 2 -banksize 8192 -type $dfg_strategy -enable-new-pm=0 -dfggen $1_min_max_opt.ll -S -o $1_opt_instrument.ll -debug
+opt -load $dfg_generator_dir/build/src/libdfggenPass.so -fn $2 -nobanks 2 -banksize 8192 -type $dfg_strategy -enable-new-pm=0 -dfggen $1_min_max_opt.ll -S -o $1_opt_instrument.ll
 
 echo ">>>>PRODUCING PDF<<<<"
 

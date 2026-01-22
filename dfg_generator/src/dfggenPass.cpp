@@ -1584,7 +1584,7 @@ void ReplaceCMPs(Function &F)
 				Instruction *notIns = cast<Instruction>(builder.CreateNot(cmpEqNew));
 				BasicBlock::iterator ii(CI);
 				notIns->removeFromParent();
-				ReplaceInstWithInst(CI->getParent()->getInstList(), ii, notIns);
+				ReplaceInstWithInst(CI->getParent(), ii, notIns);
 				break;
 			}
 			case CmpInst::FCMP_ONE:
@@ -1594,7 +1594,7 @@ void ReplaceCMPs(Function &F)
 				Instruction *notIns = cast<Instruction>(builder.CreateNot(cmpEqNew));
 				BasicBlock::iterator ii(CI);
 				notIns->removeFromParent();
-				ReplaceInstWithInst(CI->getParent()->getInstList(), ii, notIns);
+				ReplaceInstWithInst(CI->getParent(), ii, notIns);
 				break;
 			}
 
@@ -1616,7 +1616,7 @@ void ReplaceCMPs(Function &F)
 				Instruction *notIns = cast<Instruction>(builder.CreateNot(cmpEqNew));
 				BasicBlock::iterator ii(CI);
 				notIns->removeFromParent();
-				ReplaceInstWithInst(CI->getParent()->getInstList(), ii, notIns);
+				ReplaceInstWithInst(CI->getParent(), ii, notIns);
 				break;
 			}
 			case CmpInst::ICMP_SGT:
@@ -1651,7 +1651,7 @@ void ReplaceCMPs(Function &F)
 				Instruction *notIns = cast<Instruction>(builder.CreateNot(cmpEqNew));
 				BasicBlock::iterator ii(CI);
 				notIns->removeFromParent();
-				ReplaceInstWithInst(CI->getParent()->getInstList(), ii, notIns);
+				ReplaceInstWithInst(CI->getParent(), ii, notIns);
 				break;
 			}
 			break;
@@ -1878,7 +1878,7 @@ void loopTrace(std::map<Loop *, std::string> loopNames, Function &F, LoopTree ro
 
 		for (BasicBlock *BB : loopsExclusieBasicBlockMap[lnPair.first])
 		{
-			int instructionCountBB = BB->getInstList().size();
+			int instructionCountBB = BB->size();
 			Value *instructionCountBBVal = ConstantInt::get(Type::getInt32Ty(Ctx), instructionCountBB);
 			Value *BBName = builder.CreateGlobalStringPtr(BB->getName());
 
@@ -1902,7 +1902,7 @@ void loopTrace(std::map<Loop *, std::string> loopNames, Function &F, LoopTree ro
 		BasicBlock *lpPreHeaderBB = lt.lp->getLoopPreheader();
 		Value *loopName = builder.CreateGlobalStringPtr(loopNames[lt.lp]);
 
-		int instructionCountBB = lpPreHeaderBB->getInstList().size();
+		int instructionCountBB = lpPreHeaderBB->size();
 		Value *instructionCountBBVal = ConstantInt::get(Type::getInt32Ty(Ctx), instructionCountBB);
 		Value *BBName = builder.CreateGlobalStringPtr(lpPreHeaderBB->getName());
 
@@ -1913,7 +1913,7 @@ void loopTrace(std::map<Loop *, std::string> loopNames, Function &F, LoopTree ro
 	//find return instruction
 	for (BasicBlock &BB : F)
 	{
-		Value *insCountBBVal = ConstantInt::get(Type::getInt32Ty(Ctx), BB.getInstList().size());
+		Value *insCountBBVal = ConstantInt::get(Type::getInt32Ty(Ctx), BB.size());
 		builder.SetInsertPoint(&BB, --BB.end());
 		builder.CreateCall(reportExecInsCountFn, {insCountBBVal});
 
@@ -2120,7 +2120,7 @@ void AllocateSPMBanks(std::unordered_set<Value *> &outer_vals,
 		}
 		else
 		{
-			Optional<uint32_t> prov_size = DFG::inferObjectSizeFromProvenance(mem_value, DL, 8);
+			std::optional<uint32_t> prov_size = DFG::inferObjectSizeFromProvenance(mem_value, DL, 8);
 
 			if (prov_size) {
 				variable_sizes_bytes[gep->getPointerOperand()] = *prov_size;

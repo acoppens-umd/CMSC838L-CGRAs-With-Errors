@@ -1,0 +1,47 @@
+# Dockerfile.base
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 1. Install Build Dependencies
+# We need ninja-build and python3 for the LLVM build system.
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    wget \
+    git \
+    python3 \
+    ninja-build \
+    cmake \
+    zlib1g-dev \
+    libzstd-dev \
+    libncurses5-dev \
+    libxml2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Clone LLVM 16.0.0
+# We use a shallow clone of the specific tag to save time/space.
+WORKDIR /tmp
+RUN git clone --depth 1 --branch llvmorg-16.0.0 https://github.com/llvm/llvm-project.git
+
+# 3. Configure and Build LLVM
+# Critical Flags:
+# - LLVM_BUILD_LLVM_DYLIB=ON: Builds the giant shared libLLVM.so
+# - LLVM_LINK_LLVM_DYLIB=ON: Links the tools (opt, clang) against that shared lib
+# - LLVM_INSTALL_UTILS=ON: Installs FileCheck, not, etc. (useful for testing)
+WORKDIR /tmp/llvm-project/build
+RUN cmake -G "Unix Makefiles" \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DLLVM_ENABLE_PROJECTS="polly;clang;lld" \
+    -DLLVM_TARGETS_TO_BUILD="X86" \
+    -DLLVM_BUILD_LLVM_DYLIB=ON \
+    -DLLVM_LINK_LLVM_DYLIB=ON \
+    -DLLVM_INSTALL_UTILS=ON \
+    -DCMAKE_INSTALL_PREFIX=/usr/local/llvm-16 \
+    ../llvm \
+    && make -j4 \
+    && make install
+
+# 4. Clean up source to save space
+WORKDIR /
+RUN rm -rf /tmp/llvm-project

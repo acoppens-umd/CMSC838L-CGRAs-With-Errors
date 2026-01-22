@@ -41,7 +41,7 @@ pub extern "C" fn csr_csr_matmul(a_row_ptr: &[i32; M + 1], a_col_ind: &[i32; DAT
 
 #[no_mangle]
 fn rust_entry() {  
-    let a_row_ptr: [i32; M + 1] = [0, 1, 2, 2, 3, 5, 6, 6, 6, 8, 10];;
+    let a_row_ptr: [i32; M + 1] = [0, 1, 2, 2, 3, 5, 6, 6, 6, 8, 10];
     let a_col_ind: [i32; DATA_SIZE] = [5, 3, 6, 2, 1, 1, 0, 7, 3, 4];
     let a_data: [i32; DATA_SIZE] = [5, 2, 2, 4, 16, 3, 9, 0, 5, 10];
     let b_row_ptr: [i32; K + 1] = [0, 2, 2, 3, 5, 5, 6, 8, 10];

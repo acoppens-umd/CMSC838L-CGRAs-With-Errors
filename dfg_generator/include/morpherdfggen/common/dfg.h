@@ -557,14 +557,14 @@ class DFG{
 			                     std::unordered_map<Value*,GetElementPtrInst*>& mem_ptrs, std::map<dfgNode*,Value*> &OLNodesWithPtrTyUsage, Function &F);
 			void InstrumentInOutVars(Function &F, std::unordered_map<Value *, int> mem_accesses,  std::map<dfgNode*,Value*> &OLNodesWithPtrTyUsage,std::unordered_map<Value *, int>& spm_base_address);
 			Value* findGlobalUse(Function *Callee); 
-			static Optional<uint32_t> inferFromValue(Value *V,
+			static std::optional<uint32_t> inferFromValue(Value *V,
 													 const DataLayout &DL,
 													 unsigned Depth,
 													 unsigned MaxDepth);
 			static Value *stripPointerCasts(Value *V);
-			static Optional<uint32_t> getAllocaSize(AllocaInst *AI, const DataLayout &DL);
+			static std::optional<uint32_t> getAllocaSize(AllocaInst *AI, const DataLayout &DL);
 			static Value * getGEPBase(Value *V);
-			static Optional<uint32_t> inferObjectSizeFromProvenance(Value *Ptr,
+			static std::optional<uint32_t> inferObjectSizeFromProvenance(Value *Ptr,
 																	const DataLayout &DL,
 																	unsigned MaxDepth = 8);
 

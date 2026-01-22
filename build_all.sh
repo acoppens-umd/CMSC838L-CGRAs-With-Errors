@@ -14,4 +14,4 @@ mkdir build
 cd build
 cmake ..
 make all -j
-echo "buld success!!!"
+echo "build success!!!"
