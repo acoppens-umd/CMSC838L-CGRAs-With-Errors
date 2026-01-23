@@ -2,35 +2,48 @@
 
 cd $this_eval/mapping
 
-rm $2*.bin
+rm ${FUNCTION_NAME}*.bin
 
-rm $2*.csv
+rm ${FUNCTION_NAME}*.csv
 
-rm $2*.log
+rm ${FUNCTION_NAME}*.log
 
-rm $2*mappingwithlatency.txt
+rm ${FUNCTION_NAME}*mappingwithlatency.txt
 
 rm ../simulation/*.bin
 rm ../simulation/*_mem_alloc.txt
 
 JSON_ARCH=hycube_original.json
+if [[ -n "$ARCH" ]]; then
+    JSON_ARCH=$ARCH
+fi
 JSON_ARCH=$mapper_dir/json_arch/$JSON_ARCH
 BANK_SIZE=8192
 NUM_BANKS=2
 
-python3 $mapper_dir/update_mem_alloc.py $JSON_ARCH $2_mem_alloc.txt $BANK_SIZE $NUM_BANKS $JSON_ARCH
+python3 $mapper_dir/update_mem_alloc.py $JSON_ARCH ${FUNCTION_NAME}_mem_alloc.txt $BANK_SIZE $NUM_BANKS $JSON_ARCH
 
 export ARCH=""
 export PRINT_BIN=""
 
 minII=0
 
-if [[ -v 4 ]]; then
-    minII=$4
+if [[ -n "$MIN_II" ]]; then
+    minII=$MIN_II
 fi
 
-$mapper_dir/build/src/cgra_xml_mapper -d ${2}_*DFG.xml \
-    -x 4 -y 4 \
+X=4
+if [[ -n "$ARCH_X" ]]; then
+    X=$ARCH_X
+fi
+
+Y=4
+if [[ -n "$ARCH_Y" ]]; then
+    Y=$ARCH_Y
+fi
+
+$mapper_dir/build/src/cgra_xml_mapper -d ${FUNCTION_NAME}_*DFG.xml \
+    -x $X -y $Y \
     -j $JSON_ARCH \
     -i $minII -t HyCUBE_4REG -m 0
 
