@@ -49,7 +49,7 @@ bash build_all.sh
 
 5. **In the container: Run Example**
 ```bash
-bash eval.sh csr_csr csr_csr_matmul
+bash eval.sh -k=csr_csr -f=csr_csr_matmul
 ```
 
 ## Manual Setup (Not Recommended)
@@ -105,5 +105,5 @@ bash build_all.sh
 7. **Run**:
 
 ```bash
-bash eval.sh csr_csr csr_csr_matmul
+bash eval.sh -k=csr_csr -f=csr_csr_matmul
 ```
