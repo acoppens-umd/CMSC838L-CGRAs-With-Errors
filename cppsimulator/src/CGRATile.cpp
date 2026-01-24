@@ -124,7 +124,7 @@ namespace HyCUBESim {
 			case ADD :
 				LOG(SIMULATOR) << ": ADD," << operand1 << "," << operand2 << "\n";
 				ALUTempOut = static_cast<DataType>(static_cast<int32_t>(operand1) + static_cast<int32_t>(operand2));
-				std::cout << "ADD " << operand1 << " + " << operand2 << " = " << ALUTempOut << std::endl;
+				//std::cout << "ADD " << operand1 << " + " << operand2 << " = " << ALUTempOut << std::endl;
 				break;
 			//ALEX
 			case ADD_WO:
@@ -245,7 +245,7 @@ namespace HyCUBESim {
 			case SELECT :
 				LOG(SIMULATOR) << ": SELECT," << operand1 << "," << operand2 << "\n";
 				if (I1isvalid && I2isvalid) {
-					std::cout << "Failure X" << this->X << " Y" << this->Y << std::endl;
+					std::cout << "Select Failure X" << this->X << " Y" << this->Y << std::endl;
 				} else if (I1isvalid) {
 					//std::cout << "I1valid X" << this->X << " Y" << this->Y << std::endl;
 				} else if (I2isvalid) {
@@ -355,7 +355,7 @@ namespace HyCUBESim {
 			case STOREB :
 				LOG(SIMULATOR) << ": STOREB," << operand1 << "," << operand2 << "\n";
 				if(!Pisvalid || predicate){
-					std::cout << "StoringB " << operand1 << " at " << operand2 << " X" << this->X << " Y" << this->Y << std::endl;
+					//std::cout << "StoringB " << operand1 << " at " << operand2 << " X" << this->X << " Y" << this->Y << std::endl;
 
 					//only store after checking predicate
 					//other operations dont care as the output is not routed.
