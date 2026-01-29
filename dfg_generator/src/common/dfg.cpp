@@ -11279,7 +11279,7 @@ void DFG::SetBasePointers(std::unordered_set<Value *> &outer_vals,
 						PointerType *PT = cast<PointerType>(mem_ptrs[pointer]->getPointerOperand()->getType());
 						if (!PT->isOpaque())
 							array_pointer_sizes[base_ptr_name] = this->dataLayout->getTypeAllocSize(PT->getPointerElementType());
-						else 
+						else
 							array_pointer_sizes[base_ptr_name] = 4;
 					}
 				}
@@ -11612,9 +11612,11 @@ void DFG::InstrumentInOutVars(Function &F, std::unordered_map<Value *, int> mem_
 
 				//ALEX
 				std::optional<uint32_t> object_size = DFG::inferObjectSizeFromProvenance(ptr, *(this->dataLayout), 10);
-				if (object_size)
+				if (object_size) {
 					builder.CreateCall(live_in_report_FN,{ptr_name_val,bitcastedptr,
 										llvm::ConstantInt::get(llvm::Type::getInt32Ty(Ctx), *object_size)});
+					LLVM_DEBUG(dbgs() << "Found Object Size from Provenance " << ptr->getNameOrAsOperand() << " " << object_size << "\n");
+				}
 				else
 					builder.CreateCall(live_in_report_FN,{ptr_name_val,bitcastedptr,size_val});
 			//	Value* bitcastedptr2 = builder.CreateBitCast(it->first, Type::getInt32PtrTy(Ctx));
@@ -11658,9 +11660,11 @@ void DFG::InstrumentInOutVars(Function &F, std::unordered_map<Value *, int> mem_
 				Value* bitcastedptr = builder.CreateBitCast(it->first, Type::getInt8PtrTy(Ctx));
 
 				std::optional<uint32_t> object_size = DFG::inferObjectSizeFromProvenance(ptr, *(this->dataLayout), 10);
-				if (object_size)
+				if (object_size) {
 					builder.CreateCall(live_out_report_FN,{ptr_name_val,bitcastedptr,
 										llvm::ConstantInt::get(llvm::Type::getInt32Ty(Ctx), *object_size)});
+					LLVM_DEBUG(dbgs() << "Found Object Size from Provenance " << ptr->getNameOrAsOperand() << object_size << "\n");
+				}
 				else
 					builder.CreateCall(live_out_report_FN,{ptr_name_val,bitcastedptr,size_val});
 			}
@@ -11867,6 +11871,13 @@ std::optional<uint32_t> DFG::inferFromValue(Value *V,
     // Case 1: alloca
     if (auto *AI = dyn_cast<AllocaInst>(V)) {
         return getAllocaSize(AI, DL);
+    }
+
+	// Case 1.5: GV
+	if (auto *GV = dyn_cast<GlobalVariable>(V)) {
+        Type *GlobalType = GV->getValueType();
+		LLVM_DEBUG(dbgs() << "<<Found Global>>" << "\n");
+        return DL.getTypeAllocSize(GlobalType);
     }
 
     // Case 2: GEP — follow base pointer
